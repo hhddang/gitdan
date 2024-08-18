@@ -1,152 +1,193 @@
-
-
-var TREE = [
-    { id: 'C0', childrenIds: ['C1', 'C2'], isRoot: true },
-    { id: 'C1', childrenIds: ['C3', 'C4'] },
-    { id: 'C2', childrenIds: ['C6', 'C7'] },
-    { id: 'C3', childrenIds: ['C9'] },
-    { id: 'C4', childrenIds: ['C5'] },
-    { id: 'C6', childrenIds: [] },
-    { id: 'C7', childrenIds: ['C8'] },
-    { id: 'C9', childrenIds: ['C10'] },
-    { id: 'C5', childrenIds: ['C11'] },
-    { id: 'C8', childrenIds: [] },
-    { id: 'C10', childrenIds: [] },
-    { id: 'C11', childrenIds: [] },
-];
-
-const board = document.querySelector('.board');
-
-
-const createMethods = (tree) => {
-    const methodTree = [...tree];
-    // methodTree
-    var depthNodeIdsDict = { 0: [methodTree.filter(node => node.isRoot)[0].id] };
-
-
-    // Calculate depth-nodes dictionary: { <depth>: [<nodeIds>] }
-    var depth = 0;
-    while (true) {
-        const nodeIds = depthNodeIdsDict[depth].reduce((accumChildrenIds, nodeId) => {
-            const node = methodTree.filter(node => node.id === nodeId)[0];
-
-            if (node && node.childrenIds.length > 0) {
-                return [...accumChildrenIds, ...node.childrenIds];
-            } else {
-                // log;
-                console.log([...methodTree.filter(node => node.id === nodeId)[0].childrenIds]);
-                console.log(123321, TREE);
-
-                methodTree.filter(node => node.id === nodeId)[0].childrenIds.push('XX' + nodeId);
-                console.log([...methodTree.filter(node => node.id === nodeId)[0].childrenIds]);
-
-                methodTree.push({ id: 'X' + nodeId, childrenIds: [] });
-                return [...accumChildrenIds, 'X' + nodeId];
-            }
-        }, []);
-
-
-        if (nodeIds.every(nodeId => nodeId.includes('X'))) {
-            break;
-        } else {
-            depthNodeIdsDict[depth + 1] = nodeIds;
-            depth++;
-        }
-    }
-    return { methodTree, depthNodeIdsDict, depth };
-
+const TREE = {
+  C0: { childrenIds: ["C1", "C2", "C15"], isRoot: true },
+  C1: { childrenIds: ["C3", "C4", "C12"] },
+  C2: { childrenIds: ["C6", "C7", "C14"] },
+  C3: { childrenIds: ["C9"] },
+  C4: { childrenIds: ["C5"] },
+  C5: { childrenIds: ["C11"] },
+  C6: { childrenIds: ["C13", "C16"] },
+  C7: { childrenIds: ["C8"] },
+  C8: { childrenIds: [] },
+  C9: { childrenIds: ["C10"] },
+  C10: { childrenIds: [] },
+  C11: { childrenIds: [] },
+  C12: { childrenIds: [] },
+  C13: { childrenIds: [] },
+  C14: { childrenIds: [] },
+  C15: { childrenIds: [] },
+  C16: { childrenIds: [] },
 };
 
+const SPACE_X = 100;
+const SPACE_Y = 120;
 
-const calculateCoordinates = (methodTree, depthNodeIdsDict, depth) => {
-    const nodeIdCoordinateDict = {};
-    for (let i = depth; i >= 0; i--) {
-        depthNodeIdsDict[i].forEach((nodeId, index) => {
-            var x = 0;
-            if (i === depth) {
-                x = 100 * index;
-            } else {
-                const childrenIds = methodTree.filter(node => node.id === nodeId)[0].childrenIds;
-                // console.log('aha: ', nodeId, childrenIds);
+var coordinateDict = {};
 
-                childrenIds.forEach(childrenId => {
-                    // console.log('aha222: ', childrenId, snodeIdCoordinateDict[childrenId]);
-                    x += nodeIdCoordinateDict[childrenId].x;
-                });
-                x /= childrenIds.length;
-            }
+const calculateCoordinateDict = (tree) => {
+  var depth = 0;
+  var nodeIdList = ["C0"];
+  const depthNodeIdListDict = { 0: ["C0"] };
 
+  coordinateDict = {};
 
-            nodeIdCoordinateDict[nodeId] = {
-                x,
-                y: 120 * i,
-            };
-        });
+  while (true) {
+    depth++;
+
+    nodeIdList = nodeIdList.reduce((accumulateIds, nodeId) => {
+      const ids =
+        tree[nodeId].childrenIds.length >= 1
+          ? tree[nodeId].childrenIds
+          : [nodeId];
+      return [...accumulateIds, ...ids];
+    }, []);
+
+    depthNodeIdListDict[depth] = nodeIdList;
+
+    if (nodeIdList.every((nodeId) => tree[nodeId].childrenIds.length === 0)) {
+      break;
     }
+  }
 
-    // console.log(nodeIdCoordinateDict);
-    return nodeIdCoordinateDict;
-};
-
-const draw = (nodeIdCoordinateDict) => {
-    Object.keys(nodeIdCoordinateDict).forEach(nodeId => {
-
-
-        if (nodeId.includes('X')) return;
-
-        const { x, y } = nodeIdCoordinateDict[nodeId];
-        // console.log(123321, nodeId, left, top);
-
-        const commit = document.getElementById(nodeId);
-
-
-        if (commit) {
-            commit.style.left = x + 'px';
-            commit.style.top = y + 'px';
+  for (let y = depth; y >= 0; y--) {
+    const nodeIdList = depthNodeIdListDict[y];
+    nodeIdList.forEach((nodeId, index) => {
+      if (y === depth) {
+        coordinateDict[nodeId] = { x: index * SPACE_X, y: y * SPACE_Y };
+      } else {
+        if (coordinateDict[nodeId]) {
+          coordinateDict[nodeId] = {
+            ...coordinateDict[nodeId],
+            y: y * SPACE_Y,
+          };
         } else {
-            const newCommit = createCommit(nodeId, y, x);
-            board.append(newCommit);
+          const childrenIds = tree[nodeId].childrenIds;
+          const avgX =
+            childrenIds.reduce(
+              (accumulate, id) => accumulate + coordinateDict[id].x,
+              0
+            ) / childrenIds.length;
+
+          coordinateDict[nodeId] = {
+            x: avgX,
+            y: y * SPACE_Y,
+          };
         }
+      }
     });
+  }
 };
 
+const draw = () => {
+  const board = document.querySelector(".board");
+  Object.keys(tree).forEach((nodeId, index) => {
+    setTimeout(() => {
+      const { x, y } = coordinateDict[nodeId];
+      const commit = document.getElementById(nodeId);
+      if (commit) {
+        commit.style.left = x + "px";
+        commit.style.top = y + "px";
+
+        const fromLines = document.querySelectorAll(`[from=${nodeId}]`);
+        const toLines = document.querySelectorAll(`[to=${nodeId}]`);
+
+        fromLines.forEach((line) => {
+          const from = line.getAttribute("from");
+          const to = line.getAttribute("to");
+          line.remove();
+          const newLine = crateLine(
+            coordinateDict[from],
+            coordinateDict[to],
+            from,
+            to
+          );
+
+          board.append(newLine);
+        });
+
+        toLines.forEach((line) => {
+          const from = line.getAttribute("from");
+          const to = line.getAttribute("to");
+          line.remove();
+          const newLine = crateLine(
+            coordinateDict[from],
+            coordinateDict[to],
+            from,
+            to
+          );
+
+          board.append(newLine);
+        });
+      } else {
+        const newCommit = createCommit(nodeId, y, x);
+
+        const parentId =
+          Object.entries(tree).filter(([parentId, data]) =>
+            data.childrenIds.includes(nodeId)
+          )[0]?.[0] || null;
+
+        board.append(newCommit);
+        if (parentId) {
+          const line = crateLine(
+            coordinateDict[parentId],
+            { x, y },
+            parentId,
+            nodeId
+          );
+          board.append(line);
+        }
+      }
+    }, 100 * index);
+  });
+};
 
 const createCommit = (id, top, left) => {
-    const commit = document.createElement('div');
-    commit.className = 'commit';
-    commit.innerHTML = id;
-    commit.id = id;
-    commit.style.top = top + 'px';
-    commit.style.left = left + 'px';
-    return commit;
-
-
+  const commit = document.createElement("div");
+  commit.className = "commit";
+  commit.innerHTML = id;
+  commit.id = id;
+  commit.style.top = top + "px";
+  commit.style.left = left + "px";
+  return commit;
 };
 
+const crateLine = (start, end, from, to) => {
+  const line = document.createElement("div");
 
-const run = (tree) => {
-    const { methodTree, depthNodeIdsDict, depth } = createMethods(tree);
-    const nodeIdCoordinateDict = calculateCoordinates(methodTree, depthNodeIdsDict, depth);
-    draw(nodeIdCoordinateDict);
+  const length =
+    Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)) - 60;
+
+  line.style.height = length + "px";
+  line.style.width = "1px";
+  line.style.borderLeft = "1px solid red";
+  line.style.position = "absolute";
+  line.style.top = start.y + (end.y - start.y) / 2 + 30 + "px";
+  line.style.left = start.x + (end.x - start.x) / 2 + 30 + "px";
+  line.setAttribute("from", from);
+  line.setAttribute("to", to);
+  var deg =
+    (Math.atan((end.x - start.x) / 2 / ((end.y - start.y) / 2)) * 180) /
+    Math.PI;
+
+  line.style.transform = `translateY(-50%) rotate(${-deg}deg)`;
+  return line;
 };
 
-run([...TREE]);
-console.log(TREE);
+var tree = TREE;
+calculateCoordinateDict(tree);
+draw();
+const board = document.querySelector(".board");
 
-
-const input = document.querySelector('input');
-const button = document.querySelector('button');
+const input = document.querySelector("input");
+const button = document.querySelector("button");
 
 if (input && button) {
-    button.addEventListener('click', () => {
-        const head = input.value;
-        const newTree = [...TREE];
-        newTree.filter(node => node.id === head)[0].childrenIds.push('C' + newTree.length);
-        newTree.push({ id: 'C' + newTree.length, childrenIds: [] });
-        run(newTree);
-    });
+  button.addEventListener("click", () => {
+    const head = input.value;
+    const newId = "C" + Object.keys(tree).length;
+    tree[head].childrenIds.push(newId);
+    tree[newId] = { childrenIds: [] };
+
+    calculateCoordinateDict(tree);
+    draw();
+  });
 }
-
-
-
-
