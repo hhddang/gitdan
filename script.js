@@ -17,13 +17,15 @@ const TREE = {
   C15: { childrenIds: [] },
   C16: { childrenIds: [] },
 };
-
 const SPACE_X = 100;
 const SPACE_Y = 120;
+const COMMIT_SIZE = 50;
 
 var coordinateDict = {};
+var tree = TREE;
 
-const calculateCoordinateDict = (tree) => {
+
+const calculateCoordinateDict = () => {
   var depth = 0;
   var nodeIdList = ["C0"];
   const depthNodeIdListDict = { 0: ["C0"] };
@@ -77,117 +79,139 @@ const calculateCoordinateDict = (tree) => {
   }
 };
 
-const draw = () => {
-  const board = document.querySelector(".board");
+const draw = (board) => {
+  calculateCoordinateDict(tree);
+
   Object.keys(tree).forEach((nodeId, index) => {
     setTimeout(() => {
-      const { x, y } = coordinateDict[nodeId];
-      const commit = document.getElementById(nodeId);
+      const commit = document.querySelector(`[commit="${nodeId}"]`);
       if (commit) {
-        commit.style.left = x + "px";
-        commit.style.top = y + "px";
+        updateCommit(nodeId);
 
-        const fromLines = document.querySelectorAll(`[from=${nodeId}]`);
-        const toLines = document.querySelectorAll(`[to=${nodeId}]`);
+        const relatedLines = [
+          ...document.querySelectorAll(`[from=${nodeId}]`),
+          ...document.querySelectorAll(`[to=${nodeId}]`)
+        ];
 
-        fromLines.forEach((line) => {
-          const from = line.getAttribute("from");
-          const to = line.getAttribute("to");
-          line.remove();
-          const newLine = crateLine(
-            coordinateDict[from],
-            coordinateDict[to],
-            from,
-            to
-          );
-
-          board.append(newLine);
+        relatedLines.forEach((line) => {
+          const fromId = line.getAttribute('from');
+          const toId = line.getAttribute('to');
+          updateLine(fromId, toId, board);
         });
 
-        toLines.forEach((line) => {
-          const from = line.getAttribute("from");
-          const to = line.getAttribute("to");
-          line.remove();
-          const newLine = crateLine(
-            coordinateDict[from],
-            coordinateDict[to],
-            from,
-            to
-          );
-
-          board.append(newLine);
-        });
       } else {
-        const newCommit = createCommit(nodeId, y, x);
+        createCommit(nodeId, board);
 
-        const parentId =
-          Object.entries(tree).filter(([parentId, data]) =>
-            data.childrenIds.includes(nodeId)
-          )[0]?.[0] || null;
+        const parentId = Object.entries(tree).filter(([parentId, data]) =>
+          data.childrenIds.includes(nodeId)
+        )[0]?.[0] || null;
 
-        board.append(newCommit);
         if (parentId) {
-          const line = crateLine(
-            coordinateDict[parentId],
-            { x, y },
-            parentId,
-            nodeId
-          );
-          board.append(line);
+          crateLine(parentId, nodeId, board);
         }
       }
     }, 100 * index);
   });
 };
 
-const createCommit = (id, top, left) => {
-  const commit = document.createElement("div");
-  commit.className = "commit";
-  commit.innerHTML = id;
-  commit.id = id;
-  commit.style.top = top + "px";
-  commit.style.left = left + "px";
-  return commit;
-};
-
-const crateLine = (start, end, from, to) => {
-  const line = document.createElement("div");
-
-  const length =
-    Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)) - 60;
-
-  line.style.height = length + "px";
-  line.style.width = "1px";
-  line.style.borderLeft = "1px solid red";
-  line.style.position = "absolute";
-  line.style.top = start.y + (end.y - start.y) / 2 + 30 + "px";
-  line.style.left = start.x + (end.x - start.x) / 2 + 30 + "px";
-  line.setAttribute("from", from);
-  line.setAttribute("to", to);
-  var deg =
-    (Math.atan((end.x - start.x) / 2 / ((end.y - start.y) / 2)) * 180) /
-    Math.PI;
-
-  line.style.transform = `translateY(-50%) rotate(${-deg}deg)`;
-  return line;
-};
-
-var tree = TREE;
-calculateCoordinateDict(tree);
-draw();
-const board = document.querySelector(".board");
-
-const input = document.querySelector("input");
-const button = document.querySelector("button");
-
-if (input && button) {
-  button.addEventListener("click", () => {
-    const head = input.value;
-    const newId = "C" + Object.keys(tree).length;
-    tree[head].childrenIds.push(newId);
-    tree[newId] = { childrenIds: [] };
-
-    calculateCoordinateDict(tree);
-    draw();
+const createCommit = (nodeId, board) => {
+  const commit = div(nodeId, {
+    class: 'commit',
+    commit: nodeId,
+    style: `
+      --size: ${COMMIT_SIZE}px;
+      top: ${coordinateDict[nodeId].y}px;
+      left: ${coordinateDict[nodeId].x}px
+      `
   });
-}
+
+  commit.onclick = () => {
+    pushCommit(nodeId);
+    draw(board);
+  };
+
+  board.append(commit);
+};
+
+const crateLine = (fromId, toId, board) => {
+  const startCoor = coordinateDict[fromId];
+  const endCoor = coordinateDict[toId];
+
+  const xBar = endCoor.x - startCoor.x;
+  const yBar = endCoor.y - startCoor.y;
+  const long = Math.sqrt(xBar ** 2 + yBar ** 2) - COMMIT_SIZE;
+  const degree = -1 * (Math.atan((xBar / 2) / (yBar / 2)) * 180) / Math.PI;
+
+  const line = div({
+    from: fromId,
+    to: toId,
+    class: 'line',
+    style: `
+      top: ${startCoor.y + yBar / 2 + COMMIT_SIZE / 2}px;
+      left: ${startCoor.x + xBar / 2 + COMMIT_SIZE / 2}px;
+      --long: ${long}px;
+      transform: translateY(-50%) rotate(${degree}deg)
+  `
+  });
+
+  board.append(line);
+};
+
+const updateCommit = (nodeId) => {
+  const commit = document.querySelector(`[commit="${nodeId}"]`);
+  const { x, y } = coordinateDict[nodeId];
+  commit.style.left = x + "px";
+  commit.style.top = y + "px";
+};
+
+const updateLine = (fromId, toId, board) => {
+  const oldLine = document.querySelector(`[from="${fromId}"][to="${toId}"]`);
+  oldLine.remove();
+
+  crateLine(fromId, toId, board);
+};
+
+const pushCommit = (headId) => {
+  const newId = "C" + Object.keys(tree).length;
+
+  tree[headId].childrenIds.push(newId);
+  tree[newId] = { childrenIds: [] };
+};
+
+function div(params) {
+  if (arguments.length > 2) {
+    return error;
+  }
+
+  const div = document.createElement('div');
+  var content = undefined;
+  var attrs = undefined;
+
+  if (arguments.length === 1) {
+    const arg = arguments[0];
+    if (typeof arg === 'string') content = arg;
+    if (typeof arg === 'object') attrs = arg;
+  }
+  if (arguments.length === 2) {
+    content = arguments[0];
+    attrs = arguments[1];
+  }
+
+  if (content) {
+    div.innerHTML = content;
+  }
+
+  if (attrs) {
+    Object.entries(attrs).forEach(([attr, value]) => {
+      div.setAttribute(attr, value);
+    });
+  }
+
+  return div;
+};
+
+// =============================================
+
+const board = document.querySelector(".board");
+calculateCoordinateDict(tree);
+draw(board);

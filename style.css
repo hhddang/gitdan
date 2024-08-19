@@ -22,10 +22,10 @@ body {
 .commit {
   border-radius: 50%;
   font-weight: bold;
-  font-size: 24px;
+  font-size: 20px;
   color: white;
-  width: 60px;
-  height: 60px;
+  width: var(--size);
+  height: var(--size);
   background: forestgreen;
   display: grid;
   place-items: center;
@@ -33,7 +33,13 @@ body {
   box-shadow: 1px 1px 10px 3px #f8f8f8;
   animation: appear 0.4s linear;
   transition: all 0.3s;
-  /* transform: translate(-50%, -50%); */
+}
+
+.line {
+  width: 1px;
+  height: var(--long);
+  border-left: 1px solid #f8f8f8;
+  position: absolute;
 }
 
 .box {
