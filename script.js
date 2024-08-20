@@ -17,9 +17,10 @@ const TREE = {
   C15: { childrenIds: [] },
   C16: { childrenIds: [] },
 };
-const SPACE_X = 100;
-const SPACE_Y = 120;
-const COMMIT_SIZE = 50;
+const SPACE_X = 80;
+const SPACE_Y = 100;
+const COMMIT_SIZE = 42;
+const LINE_WIDTH = 3;
 
 var coordinateDict = {};
 var tree = TREE;
@@ -86,7 +87,6 @@ const draw = (board) => {
     setTimeout(() => {
       const commit = document.querySelector(`[commit="${nodeId}"]`);
       if (commit) {
-        updateCommit(nodeId);
 
         const relatedLines = [
           ...document.querySelectorAll(`[from=${nodeId}]`),
@@ -98,6 +98,14 @@ const draw = (board) => {
           const toId = line.getAttribute('to');
           updateLine(fromId, toId, board);
         });
+
+        updateCommit(nodeId);
+
+        // relatedLines.forEach((line) => {
+        //   const fromId = line.getAttribute('from');
+        //   const toId = line.getAttribute('to');
+        //   updateLine(fromId, toId, board);
+        // });
 
       } else {
         createCommit(nodeId, board);
@@ -150,7 +158,9 @@ const crateLine = (fromId, toId, board) => {
       top: ${startCoor.y + yBar / 2 + COMMIT_SIZE / 2}px;
       left: ${startCoor.x + xBar / 2 + COMMIT_SIZE / 2}px;
       --long: ${long}px;
-      transform: translateY(-50%) rotate(${degree}deg)
+      --width: ${LINE_WIDTH}px;
+      --color: #777777;
+      transform: translate(-50%, -50%) rotate(${degree}deg)
   `
   });
 
@@ -167,8 +177,9 @@ const updateCommit = (nodeId) => {
 const updateLine = (fromId, toId, board) => {
   const oldLine = document.querySelector(`[from="${fromId}"][to="${toId}"]`);
   oldLine.remove();
-
-  crateLine(fromId, toId, board);
+  setTimeout(() => {
+    crateLine(fromId, toId, board);
+  }, 500);
 };
 
 const pushCommit = (headId) => {
@@ -176,6 +187,25 @@ const pushCommit = (headId) => {
 
   tree[headId].childrenIds.push(newId);
   tree[newId] = { childrenIds: [] };
+};
+
+const createBranch = (name, nodeId) => {
+  const commit = document.querySelector(`[commit=${nodeId}]`);
+  if (commit) {
+    const branch = div(name, { class: 'branch' });
+
+    const branchWrapper = commit.querySelector('.branch-wrapper');
+    if (branchWrapper) {
+      branchWrapper.append(branch);
+    } else {
+      const newBranchWapper = div({ class: 'branch-wrapper' });
+      commit.append(newBranchWapper);
+
+      newBranchWapper.append(branch);
+    }
+
+  }
+
 };
 
 function div(params) {
@@ -215,3 +245,12 @@ function div(params) {
 const board = document.querySelector(".board");
 calculateCoordinateDict(tree);
 draw(board);
+
+setTimeout(() => {
+
+  createBranch('main', 'C1');
+  createBranch('main222dsdfsdfsdfds', 'C1');
+  createBranch('main222dsdfsdfsdfds', 'C1');
+  createBranch('main222dsdfsdfsdfds', 'C1');
+  createBranch('main222dsdfsdfsdfds', 'C1');
+}, 2000);
