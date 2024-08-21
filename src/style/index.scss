@@ -1,0 +1,94 @@
+body {
+    width: 100%;
+    height: 100vh;
+    background: #c7ffba;
+    display: grid;
+    place-items: center;
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.board {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    margin: 20px;
+}
+
+.commit {
+    font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", monospace;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 14px;
+    color: white;
+    /* box-shadow: 1px 1px 5px 2px #7f7f7f; */
+    width: var(--size);
+    height: var(--size);
+    background: #1ba5e4;
+    display: grid;
+    place-items: center;
+    position: absolute;
+    animation: appear 0.4s linear;
+    transition: all 0.3s;
+}
+
+.line {
+    width: 1px;
+    height: var(--long);
+    border-left: var(--width) solid var(--color);
+    position: absolute;
+}
+
+.line::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border: var(--color) var(--width) solid;
+    border-top: transparent;
+    border-left: transparent;
+    position: absolute;
+    left: calc(-1 * var(--width) / 2);
+    transform: translateX(-50%) rotate(45deg);
+    bottom: 0;
+}
+
+.box {
+    position: absolute;
+    border: 1px solid white;
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: scale(0);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.branch-wrapper {
+    position: absolute;
+    top: -10px;
+    left: calc(100% + 0px);
+    background: black;
+    border-radius: 14px;
+    padding: 5px 10px;
+    /* box-shadow: 0 0 5px 2px white; */
+    opacity: .8;
+    z-index: 1;
+}
+
+.branch-wrapper::before {
+    content: "";
+    border: 12px solid transparent;
+    border-top-color: black;
+    position: absolute;
+    transform: translate(-60%, 6px) rotate(-45deg);
+}

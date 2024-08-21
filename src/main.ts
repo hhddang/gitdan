@@ -1,4 +1,7 @@
-const TREE = {
+import "./style/index.scss";
+import { IDepthNodeIdListDict, ITree, ICoordinateDict } from "./interfaces";
+
+const TREE: ITree = {
   C0: { childrenIds: ["C1", "C2", "C15"], isRoot: true },
   C1: { childrenIds: ["C3", "C4", "C12"] },
   C2: { childrenIds: ["C6", "C7", "C14"] },
@@ -7,46 +10,42 @@ const TREE = {
   C5: { childrenIds: ["C11"] },
   C6: { childrenIds: ["C13", "C16"] },
   C7: { childrenIds: ["C8"] },
-  C8: { childrenIds: [] },
+  C8: {},
   C9: { childrenIds: ["C10"] },
-  C10: { childrenIds: [] },
-  C11: { childrenIds: [] },
-  C12: { childrenIds: [] },
-  C13: { childrenIds: [] },
-  C14: { childrenIds: [] },
-  C15: { childrenIds: [] },
-  C16: { childrenIds: [] },
+  C10: {},
+  C11: {},
+  C12: {},
+  C13: {},
+  C14: {},
+  C15: {},
+  C16: {},
 };
-const SPACE_X = 80;
-const SPACE_Y = 100;
+const SPACE_X = 110;
+const SPACE_Y = 130;
 const COMMIT_SIZE = 42;
 const LINE_WIDTH = 3;
 
-var coordinateDict = {};
+var coordinateDict: ICoordinateDict = {};
 var tree = TREE;
-
 
 const calculateCoordinateDict = () => {
   var depth = 0;
-  var nodeIdList = ["C0"];
-  const depthNodeIdListDict = { 0: ["C0"] };
+  var nodeIdList: string[] = ["C0"];
+  const depthNodeIdListDict: IDepthNodeIdListDict = { 0: ["C0"] };
 
   coordinateDict = {};
 
   while (true) {
     depth++;
 
-    nodeIdList = nodeIdList.reduce((accumulateIds, nodeId) => {
-      const ids =
-        tree[nodeId].childrenIds.length >= 1
-          ? tree[nodeId].childrenIds
-          : [nodeId];
+    nodeIdList = nodeIdList.reduce<string[]>((accumulateIds, nodeId) => {
+      const ids = tree[nodeId].childrenIds ? tree[nodeId].childrenIds : [nodeId];
       return [...accumulateIds, ...ids];
     }, []);
 
     depthNodeIdListDict[depth] = nodeIdList;
 
-    if (nodeIdList.every((nodeId) => tree[nodeId].childrenIds.length === 0)) {
+    if (nodeIdList.every((nodeId) => !tree[nodeId].childrenIds)) {
       break;
     }
   }
@@ -64,24 +63,26 @@ const calculateCoordinateDict = () => {
           };
         } else {
           const childrenIds = tree[nodeId].childrenIds;
-          const avgX =
-            childrenIds.reduce(
-              (accumulate, id) => accumulate + coordinateDict[id].x,
-              0
-            ) / childrenIds.length;
+          if (childrenIds) {
+            const avgX =
+              childrenIds.reduce(
+                (accumulate, id) => accumulate + coordinateDict[id].x,
+                0
+              ) / childrenIds.length;
 
-          coordinateDict[nodeId] = {
-            x: avgX,
-            y: y * SPACE_Y,
-          };
+            coordinateDict[nodeId] = {
+              x: avgX,
+              y: y * SPACE_Y,
+            };
+          }
         }
       }
     });
   }
 };
 
-const draw = (board) => {
-  calculateCoordinateDict(tree);
+const draw = (board: HTMLElement) => {
+  calculateCoordinateDict();
 
   Object.keys(tree).forEach((nodeId, index) => {
     setTimeout(() => {
@@ -94,24 +95,17 @@ const draw = (board) => {
         ];
 
         relatedLines.forEach((line) => {
-          const fromId = line.getAttribute('from');
-          const toId = line.getAttribute('to');
+          const fromId = line.getAttribute('from')!;
+          const toId = line.getAttribute('to')!;
           updateLine(fromId, toId, board);
         });
 
         updateCommit(nodeId);
-
-        // relatedLines.forEach((line) => {
-        //   const fromId = line.getAttribute('from');
-        //   const toId = line.getAttribute('to');
-        //   updateLine(fromId, toId, board);
-        // });
-
       } else {
         createCommit(nodeId, board);
 
-        const parentId = Object.entries(tree).filter(([parentId, data]) =>
-          data.childrenIds.includes(nodeId)
+        const parentId = Object.entries(tree).filter(([_, data]) =>
+          data.childrenIds?.includes(nodeId)
         )[0]?.[0] || null;
 
         if (parentId) {
@@ -122,7 +116,7 @@ const draw = (board) => {
   });
 };
 
-const createCommit = (nodeId, board) => {
+const createCommit = (nodeId: string, board: HTMLElement) => {
   const commit = div(nodeId, {
     class: 'commit',
     commit: nodeId,
@@ -141,7 +135,7 @@ const createCommit = (nodeId, board) => {
   board.append(commit);
 };
 
-const crateLine = (fromId, toId, board) => {
+const crateLine = (fromId: string, toId: string, board: HTMLElement) => {
   const startCoor = coordinateDict[fromId];
   const endCoor = coordinateDict[toId];
 
@@ -167,29 +161,33 @@ const crateLine = (fromId, toId, board) => {
   board.append(line);
 };
 
-const updateCommit = (nodeId) => {
-  const commit = document.querySelector(`[commit="${nodeId}"]`);
+const updateCommit = (nodeId: string) => {
+  const commit = document.querySelector(`[commit="${nodeId}"]`) as HTMLElement;
   const { x, y } = coordinateDict[nodeId];
   commit.style.left = x + "px";
   commit.style.top = y + "px";
 };
 
-const updateLine = (fromId, toId, board) => {
-  const oldLine = document.querySelector(`[from="${fromId}"][to="${toId}"]`);
+const updateLine = (fromId: string, toId: string, board: HTMLElement) => {
+  const oldLine = document.querySelector(`[from="${fromId}"][to="${toId}"]`) as HTMLElement;
   oldLine.remove();
   setTimeout(() => {
     crateLine(fromId, toId, board);
   }, 500);
 };
 
-const pushCommit = (headId) => {
+const pushCommit = (headId: string) => {
   const newId = "C" + Object.keys(tree).length;
 
-  tree[headId].childrenIds.push(newId);
+  if (tree[headId].childrenIds) {
+    tree[headId].childrenIds.push(newId);
+  } else {
+    tree[headId].childrenIds = [newId];
+  }
   tree[newId] = { childrenIds: [] };
 };
 
-const createBranch = (name, nodeId) => {
+const createBranch = (name: string, nodeId: string) => {
   const commit = document.querySelector(`[commit=${nodeId}]`);
   if (commit) {
     const branch = div(name, { class: 'branch' });
@@ -208,23 +206,24 @@ const createBranch = (name, nodeId) => {
 
 };
 
-function div(params) {
-  if (arguments.length > 2) {
-    return error;
-  }
 
+
+function div(content: string): HTMLElement;
+function div(attributes: object): HTMLElement;
+function div(content: string, attributes: object): HTMLElement;
+function div(...args: any): HTMLElement {
   const div = document.createElement('div');
   var content = undefined;
   var attrs = undefined;
 
-  if (arguments.length === 1) {
-    const arg = arguments[0];
+  if (args.length === 1) {
+    const arg = args[0];
     if (typeof arg === 'string') content = arg;
     if (typeof arg === 'object') attrs = arg;
   }
-  if (arguments.length === 2) {
-    content = arguments[0];
-    attrs = arguments[1];
+  if (args.length === 2) {
+    content = args[0];
+    attrs = args[1];
   }
 
   if (content) {
@@ -232,7 +231,7 @@ function div(params) {
   }
 
   if (attrs) {
-    Object.entries(attrs).forEach(([attr, value]) => {
+    Object.entries<string>(attrs).forEach(([attr, value]) => {
       div.setAttribute(attr, value);
     });
   }
@@ -242,15 +241,16 @@ function div(params) {
 
 // =============================================
 
-const board = document.querySelector(".board");
-calculateCoordinateDict(tree);
+const board = document.querySelector(".board") as HTMLElement;
+calculateCoordinateDict();
 draw(board);
 
 setTimeout(() => {
 
   createBranch('main', 'C1');
-  createBranch('main222dsdfsdfsdfds', 'C1');
-  createBranch('main222dsdfsdfsdfds', 'C1');
-  createBranch('main222dsdfsdfsdfds', 'C1');
-  createBranch('main222dsdfsdfsdfds', 'C1');
+  createBranch('feat1', 'C1');
+  createBranch('feat2', 'C3');
+  createBranch('fix', 'C2');
+  createBranch('test', 'C14');
 }, 2000);
+
