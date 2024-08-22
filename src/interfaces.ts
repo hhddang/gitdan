@@ -1,6 +1,10 @@
 export interface INode {
     childrenIds?: string[],
     isRoot?: boolean;
+    drawInfo?: {
+        depth: number;
+        coordinate: ICoordinate;
+    };
 }
 
 export type ITree = {
@@ -18,5 +22,7 @@ export type ICoordinateDict = {
         y: number;
     };
 };
+
+interface ICoordinate { x: number, y: number; }
 
 
