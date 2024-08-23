@@ -1,8 +1,9 @@
-import { ICoordinateDict, IDepthNodeIdListDict, ITree } from "../interfaces";
+import { ICoordinateDict, IDepthNodeIdListDict, INodeDict } from "../interfaces";
 import { div } from "../utils";
+import { Tree } from "./tree";
 
 export class TreeDraw {
-    private _tree!: ITree;
+    private _tree!: Tree;
     private _board!: HTMLElement;
     private _coordinateDict: ICoordinateDict = {};
     private _config = {
@@ -18,8 +19,8 @@ export class TreeDraw {
         },
     };
 
-    constructor(tree: ITree, board: HTMLElement) {
-        this._tree = tree;
+    constructor(nodeDict: INodeDict, board: HTMLElement) {
+        this._tree = new Tree(nodeDict);
         this._board = board;
         this.getTreeDrawInfo();
     }
@@ -49,7 +50,11 @@ export class TreeDraw {
     }
 
     get rootId(): string {
-        return Object.keys(this._tree)[0];
+        return Object.keys(this.nodes)[0];
+    }
+
+    get nodes(): INodeDict {
+        return this._tree.nodeDict;
     }
 
     getTreeDrawInfo() {
@@ -61,19 +66,19 @@ export class TreeDraw {
             depth++;
 
             nodeIdList = nodeIdList.reduce<string[]>((accumulateIds, nodeId) => {
-                const ids = this._tree[nodeId].childrenIds ? this._tree[nodeId].childrenIds : [nodeId];
+                const ids = this.nodes[nodeId].childrenIds ? this.nodes[nodeId].childrenIds : [nodeId];
                 return [...accumulateIds, ...ids];
             }, []);
 
             depthNodeIdListDict[depth] = nodeIdList;
 
-            if (nodeIdList.every((nodeId) => !this._tree[nodeId].childrenIds)) {
+            if (nodeIdList.every((nodeId) => !this.nodes[nodeId].childrenIds)) {
                 break;
             }
         }
 
         // const calculateCoordinate = (nodeId: string, depth: number) => {
-        //     const childrenIds = this._tree[parentId].childrenIds;
+        //     const childrenIds = this.nodes[parentId].childrenIds;
 
         //     if (childrenIds) {
 
@@ -95,7 +100,7 @@ export class TreeDraw {
                             y: y * this.distanceY,
                         };
                     } else {
-                        const childrenIds = this._tree[nodeId].childrenIds;
+                        const childrenIds = this.nodes[nodeId].childrenIds;
                         if (childrenIds) {
                             const avgX =
                                 childrenIds.reduce(
@@ -122,13 +127,13 @@ export class TreeDraw {
             depth++;
 
             nodeIdList = nodeIdList.reduce<string[]>((accumulateIds, nodeId) => {
-                const ids = this._tree[nodeId].childrenIds ? this._tree[nodeId].childrenIds : [nodeId];
+                const ids = this.nodes[nodeId].childrenIds ? this.nodes[nodeId].childrenIds : [nodeId];
                 return [...accumulateIds, ...ids];
             }, []);
 
             depthNodeIdListDict[depth] = nodeIdList;
 
-            if (nodeIdList.every((nodeId) => !this._tree[nodeId].childrenIds)) {
+            if (nodeIdList.every((nodeId) => !this.nodes[nodeId].childrenIds)) {
                 break;
             }
         }
@@ -145,7 +150,7 @@ export class TreeDraw {
                             y: y * this.distanceY,
                         };
                     } else {
-                        const childrenIds = this._tree[nodeId].childrenIds;
+                        const childrenIds = this.nodes[nodeId].childrenIds;
                         if (childrenIds) {
                             const avgX =
                                 childrenIds.reduce(
@@ -230,24 +235,24 @@ export class TreeDraw {
     };
 
     pushCommit(headId: string) {
-        const newId = "C" + Object.keys(this._tree).length;
+        const newId = "C" + Object.keys(this.nodes).length;
 
-        if (this._tree[headId].childrenIds) {
-            this._tree[headId].childrenIds.push(newId);
+        if (this.nodes[headId].childrenIds) {
+            this.nodes[headId].childrenIds.push(newId);
         } else {
-            this._tree[headId].childrenIds = [newId];
+            this.nodes[headId].childrenIds = [newId];
         }
-        this._tree[newId] = { childrenIds: [] };
+        this.nodes[newId] = { childrenIds: [] };
     };
 
     draw() {
-        const nodeIds = Object.keys(this._tree);
+        const nodeIds = Object.keys(this.nodes);
         var i = 0;
 
         const createNextCommit = (nodeId: string) => {
             this.createCommit(nodeId).then(() => {
                 console.log('create ', nodeId);
-                const parentId = Object.entries(this._tree).filter(([_, data]) =>
+                const parentId = Object.entries(this.nodes).filter(([_, data]) =>
                     data.childrenIds?.includes(nodeId)
                 )[0]?.[0] || null;
 
@@ -263,7 +268,7 @@ export class TreeDraw {
 
         createNextCommit(nodeIds[i]);
 
-        // Object.keys(this._tree).forEach(async nodeId => {
+        // Object.keys(this.nodes).forEach(async nodeId => {
         //     const commit = document.querySelector(`[commit="${nodeId}"]`);
         //     if (commit) {
 
@@ -284,7 +289,7 @@ export class TreeDraw {
         //         console.log('create ', nodeId);
 
 
-        //         const parentId = Object.entries(this._tree).filter(([_, data]) =>
+        //         const parentId = Object.entries(this.nodes).filter(([_, data]) =>
         //             data.childrenIds?.includes(nodeId)
         //         )[0]?.[0] || null;
 

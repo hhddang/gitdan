@@ -1,20 +1,15 @@
 export interface INode {
     childrenIds?: string[],
     isRoot?: boolean;
-    drawInfo?: {
-        depth: number;
-        coordinate: ICoordinate;
-    };
 }
 
-export type ITree = {
+export type INodeDict = {
     [nodeId: string]: INode;
 };
 
 export type IDepthNodeIdListDict = {
     [depth: number]: string[];
 };
-
 
 export type ICoordinateDict = {
     [nodeId: string]: {
@@ -25,4 +20,7 @@ export type ICoordinateDict = {
 
 interface ICoordinate { x: number, y: number; }
 
+export type DepthDict = {
+    [nodeId: string]: number;
+}
 

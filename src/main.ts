@@ -1,8 +1,8 @@
 import "./style/index.scss";
 import { TreeDraw } from "./classes/treeDraw";
-import { ITree } from "./interfaces";
+import { INodeDict } from "./interfaces";
 
-const tree: ITree = {
+const nodeDict: INodeDict = {
   C0: { childrenIds: ["C1", "C2", "C15"], isRoot: true },
   C1: { childrenIds: ["C3", "C4", "C12"] },
   C2: { childrenIds: ["C6", "C7", "C14"] },
@@ -23,17 +23,10 @@ const tree: ITree = {
 };
 
 const board = document.querySelector(".board") as HTMLElement;
-const treeDraw = new TreeDraw(tree, board);
+const treeDraw = new TreeDraw(nodeDict, board);
 
 
 
-
-
-const a = {
-
-};
-
-console.log(a?.b?.c ?? '456');
 
 
 
