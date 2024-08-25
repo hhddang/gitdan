@@ -1,26 +1,28 @@
 export interface INode {
-    childrenIds?: string[],
-    isRoot?: boolean;
+  childrenIds?: string[];
+  isRoot?: boolean;
 }
 
 export type INodeDict = {
-    [nodeId: string]: INode;
+  [nodeId: string]: INode;
 };
 
 export type IDepthNodeIdListDict = {
-    [depth: number]: string[];
+  [depth: number]: string[];
 };
 
 export type ICoordinateDict = {
-    [nodeId: string]: {
-        x: number,
-        y: number;
-    };
+  [nodeId: string]: {
+    x: number;
+    y: number;
+  };
 };
 
-interface ICoordinate { x: number, y: number; }
-
-export type DepthDict = {
-    [nodeId: string]: number;
+export interface ICoordinate {
+  x: number;
+  y: number;
 }
 
+export type DepthDict = {
+  [nodeId: string]: number;
+};

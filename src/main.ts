@@ -18,23 +18,21 @@ const nodeDict: INodeDict = {
   C12: {},
   C13: {},
   C14: {},
-  C15: {},
+  C15: { childrenIds: ["C17"] },
   C16: {},
+  C17: {},
 };
 
 const board = document.querySelector(".board") as HTMLElement;
 const treeDraw = new TreeDraw(nodeDict, board);
 
-
-
-
-
-
 treeDraw.draw();
 setTimeout(() => {
-  treeDraw.createBranch('main', 'C1');
-  treeDraw.createBranch('feat1', 'C1');
-  treeDraw.createBranch('feat2', 'C3');
-  treeDraw.createBranch('fix', 'C2');
-  treeDraw.createBranch('test', 'C14');
-}, 8000);
+  treeDraw.createBranch("main", "C1");
+  treeDraw.createBranch("feat1", "C1");
+  treeDraw.createBranch("feat1", "C2");
+  treeDraw.createBranch("feat1", "C3");
+  treeDraw.createBranch("feat1", "C4");
+  treeDraw.createBranch("feat1", "C5");
+  treeDraw.createBranch("feat1", "C6");
+}, 3000);
