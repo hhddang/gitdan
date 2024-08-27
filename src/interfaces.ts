@@ -1,5 +1,6 @@
 export interface INode {
   childrenIds?: string[];
+  mergeIds?: string[];
   isRoot?: boolean;
 }
 

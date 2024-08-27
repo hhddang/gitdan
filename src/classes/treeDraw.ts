@@ -173,14 +173,8 @@ export class TreeDraw {
     const createNextCommit = (nodeId: string) => {
       this.createCommit(nodeId).then(() => {
         console.log("create ", nodeId);
-        const parentId =
-          Object.entries(this.nodes).filter(([_, data]) =>
-            data.childrenIds?.includes(nodeId)
-          )[0]?.[0] || null;
-
-        if (parentId) {
-          this.crateLine(parentId, nodeId);
-        }
+        const parentIds = this._tree.getDirectParents(nodeId);
+        parentIds.map(parentId => this.crateLine(parentId, nodeId));
 
         if (++i < nodeIds.length) {
           createNextCommit(nodeIds[i]);
