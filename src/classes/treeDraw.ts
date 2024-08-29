@@ -3,7 +3,7 @@ import { div } from "../utils";
 import { Tree } from "./tree";
 
 export class TreeDraw {
-  private _tree!: Tree;
+  public _tree!: Tree;
   private _board!: HTMLElement;
   private _coordinateDict: ICoordinateDict = {};
   private _config = {
@@ -55,6 +55,20 @@ export class TreeDraw {
 
   get nodes(): INodeDict {
     return this._tree.nodeDict;
+  }
+
+  getEffectedNodes(nodeId: string): string[] {
+    const getEffect = (nodeId: string, causeId: string, affectedIdList: string[]) => {
+
+      const parentId = this._tree.getDirectParent(nodeId);
+
+      if (parentId) {
+        const siblings = this.nodes[parentId].childrenIds;
+      }
+
+    };
+
+    return [];
   }
 
   getTreeDrawInfo() {
@@ -173,8 +187,10 @@ export class TreeDraw {
     const createNextCommit = (nodeId: string) => {
       this.createCommit(nodeId).then(() => {
         console.log("create ", nodeId);
-        const parentIds = this._tree.getDirectParents(nodeId);
-        parentIds.map(parentId => this.crateLine(parentId, nodeId));
+        const parentId = this._tree.getDirectParent(nodeId);
+        if (parentId) {
+          this.crateLine(parentId, nodeId);
+        }
 
         if (++i < nodeIds.length) {
           createNextCommit(nodeIds[i]);
@@ -183,36 +199,6 @@ export class TreeDraw {
     };
 
     createNextCommit(nodeIds[i]);
-
-    // Object.keys(this.nodes).forEach(async nodeId => {
-    //     const commit = document.querySelector(`[commit="${nodeId}"]`);
-    //     if (commit) {
-
-    //         const relatedLines = [
-    //             ...document.querySelectorAll(`[from=${nodeId}]`),
-    //             ...document.querySelectorAll(`[to=${nodeId}]`)
-    //         ];
-
-    //         relatedLines.forEach((line) => {
-    //             const fromId = line.getAttribute('from')!;
-    //             const toId = line.getAttribute('to')!;
-    //             this.updateLine(fromId, toId);
-    //         });
-
-    //         this.updateCommit(nodeId);
-    //     } else {
-    //         await this.createCommit(nodeId);
-    //         console.log('create ', nodeId);
-
-    //         const parentId = Object.entries(this.nodes).filter(([_, data]) =>
-    //             data.childrenIds?.includes(nodeId)
-    //         )[0]?.[0] || null;
-
-    //         if (parentId) {
-    //             this.crateLine(parentId, nodeId);
-    //         }
-    //     }
-    // });
   }
 
   createBranch(name: string, nodeId: string) {

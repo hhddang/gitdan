@@ -27,12 +27,22 @@ const board = document.querySelector(".board") as HTMLElement;
 const treeDraw = new TreeDraw(nodeDict, board);
 
 treeDraw.draw();
-setTimeout(() => {
-  treeDraw.createBranch("main", "C1");
-  treeDraw.createBranch("feat1", "C1");
-  treeDraw.createBranch("feat1", "C2");
-  treeDraw.createBranch("feat1", "C3");
-  treeDraw.createBranch("feat1", "C4");
-  treeDraw.createBranch("feat1", "C5");
-  treeDraw.createBranch("feat1", "C6");
-}, 3000);
+// setTimeout(() => {
+//   treeDraw.createBranch("main", "C1");
+//   treeDraw.createBranch("feat1", "C1");
+//   treeDraw.createBranch("feat1", "C2");
+//   treeDraw.createBranch("feat1", "C3");
+
+
+//   treeDraw.nodes["C11"] = { ...treeDraw.nodes["C11"], childrenIds: ["C18", "C19", "C20", "C21"] };
+//   treeDraw.nodes["C18"] = {};
+//   treeDraw.nodes["C19"] = {};
+//   treeDraw.nodes["C20"] = {};
+//   treeDraw.nodes["C21"] = {};
+//   console.log(treeDraw.nodes);
+
+//   treeDraw._tree.setDepthDict("C0", 0);
+//   treeDraw.getTreeDrawInfo();
+//   treeDraw.draw();
+
+// }, 30000);

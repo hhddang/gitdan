@@ -7,12 +7,6 @@ export class Tree {
     constructor(nodeDict: INodeDict) {
         this.nodeDict = nodeDict;
         this.setDepthDict(this.rootId, 0);
-        console.log(this.depthDict);
-
-        console.log(this.getLeafNodes());
-
-        console.log(this.getDirectParents('C16'));
-
     }
 
     public get rootId(): string {
@@ -21,7 +15,7 @@ export class Tree {
         )[0][0];
     }
 
-    private setDepthDict(nodeId: string, depth: number): void {
+    public setDepthDict(nodeId: string, depth: number): void {
         if (depth > this.depthDict[nodeId] || this.depthDict[nodeId] === undefined) {
             this.depthDict = {
                 ...this.depthDict,
@@ -54,13 +48,12 @@ export class Tree {
         return getChildrenIds(this.rootId);
     }
 
-    public getDirectParents(nodeId: string): string[] {
-        return Object.entries(this.nodeDict).reduce<string[]>((accummulate, [parentId, parentInfo]) => {
-            if (parentInfo.childrenIds?.includes(nodeId) || parentInfo.mergeIds?.includes(nodeId)) {
-
-                return [...accummulate, parentId];
-            }
-            return accummulate;
-        }, []);
+    public getDirectParent(nodeId: string): string | null {
+        const filterParentIds = Object.keys(this.nodeDict).filter((parentId) => this.nodeDict[parentId].childrenIds?.includes(nodeId));
+        if (filterParentIds.length > 0) return filterParentIds[0];
+        return null;
+    }
+    public getMergeParent(nodeId: string): string {
+        return '';
     }
 }
